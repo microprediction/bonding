@@ -4,18 +4,26 @@ import math
 # Define the smallest currency denomination
 QUANTA = 1e-8
 
+# An older more coupled version of the AMM
 
-class BondingCurveAMM:
+class BondingCurveAMMCoupled:
     """
-    A simple Automated Market Maker (AMM) that uses a given BondingCurve
-    to determine pricing, while handling transaction fees, rounding, and state tracking.
+    A simple Automated Market Maker (AMM) implementing a bonding curve:
+        price(x) = sqrt(1 + (x / scale)^2)
+    with integral:
+        price_integral(x) = 0.5 * [ x * sqrt(1 + (x/scale)^2 )
+                                    + scale * asinh(x / scale) ]
+
+    Now supports a tiny proportional transaction fee rate, e.g. 0.001 for 0.1%.
+    Also collects tiny breakage fees, which are fractions of the quanta
+    Exposes hypothetical trade results (which can be used to display size-dependent bid-offers if needed)
 
     Attributes
     ----------
-    curve : BondingCurve
-        The bonding curve instance that defines price and integral logic.
+    scale : float
+        Scaling parameter in the price function.
     fee_rate : float
-        Fraction of each transaction (buy or sell) collected as fees. 0.001 => 0.1%.
+        Fraction of each transaction (buy or sell) collected as fees. 0.001 => 0.1% fee.
     quanta : float
         Defines the smallest currency denomination (1e-8).
     x : float
@@ -28,20 +36,20 @@ class BondingCurveAMM:
         Logger instance for logging events and errors.
     """
 
-    def __init__(self, curve, fee_rate=0.0, quanta=QUANTA):
+    def __init__(self, scale=500000.0, fee_rate=0.0, quanta=QUANTA):
         """
-        Initialize the BondingCurveAMM.
+        Initialize the BondingCurveAMMCoupled.
 
         Parameters
         ----------
-        curve : BondingCurve
-            A bonding curve instance (e.g. SqrtBondingCurve).
+        scale : float, optional
+            Scaling parameter in the bonding curve. Defaults to 500,000.
         fee_rate : float, optional
             Fraction of each transaction (buy or sell) to be taken as fees (0.001 => 0.1%).
         quanta : float, optional
             Defines the smallest currency denomination (1e-8). Defaults to QUANTA.
         """
-        self.curve = curve
+        self.scale = float(scale)
         self.fee_rate = float(fee_rate)
         self.quanta = float(quanta)
 
@@ -55,9 +63,41 @@ class BondingCurveAMM:
         # Configure logger
         self.logger = logging.getLogger(self.__class__.__name__)
 
-    ###########################################################################
-    # Internal solver that uses the curve's cost_to_move
-    ###########################################################################
+    ############################################################################
+    # Price & Integral
+    ############################################################################
+
+    @staticmethod
+    def _price(x: float, scale: float) -> float:
+        """
+        price(x) = sqrt(1 + (x / scale)^2).
+        """
+        return math.sqrt(1.0 + (x / scale) ** 2)
+
+    @staticmethod
+    def _price_integral(x: float, scale: float) -> float:
+        """
+        price_integral(x) = ∫ sqrt(1 + (u/scale)^2) du from 0 to x.
+
+        = 0.5 * [ x * sqrt(1 + (x/scale)^2 ) + scale * asinh(x/scale) ]
+        """
+        x_prime = x / scale
+        return 0.5 * (
+                x * math.sqrt(1.0 + x_prime ** 2)
+                + scale * math.asinh(x_prime)
+        )
+
+    def _cost_to_move(self, x_start: float, x_end: float) -> float:
+        """
+        Cost in currency to move from x_start to x_end.
+        Positive if x_end > x_start (buying), negative if x_end < x_start (selling).
+        """
+        return self._price_integral(x_end, self.scale) - self._price_integral(x_start, self.scale)
+
+    ############################################################################
+    # Core "solver" method
+    ############################################################################
+
     def _solve_for_dx(self, x_start: float, target_cost: float,
                       tolerance=1e-12, max_iter=200) -> float:
         """
@@ -83,7 +123,7 @@ class BondingCurveAMM:
             x_test = x_start + direction * upper_dx
             if x_test < 0:
                 x_test = 0.0
-            cost = self.curve.cost_to_move(x_start, x_test)  # Use the curve's logic
+            cost = self._cost_to_move(x_start, x_test)
 
             # If we've bracketed the target
             if (direction > 0 and cost >= target_cost) or \
@@ -100,7 +140,7 @@ class BondingCurveAMM:
             x_mid = x_start + direction * mid_dx
             if x_mid < 0:
                 x_mid = 0.0
-            cost_mid = self.curve.cost_to_move(x_start, x_mid)
+            cost_mid = self._cost_to_move(x_start, x_mid)
 
             if abs(cost_mid - target_cost) < tolerance:
                 return direction * mid_dx
@@ -113,9 +153,14 @@ class BondingCurveAMM:
 
         return direction * 0.5 * (lower_dx + upper_dx)
 
-    ###########################################################################
+    ############################################################################
     # Simulation (Hypothetical) Methods
-    ###########################################################################
+    #   - "buy_value"     => user spends a currency amount, mints shares
+    #   - "buy_shares"    => user wants exactly n_trading_opportunities shares, figure out currency cost
+    #   - "sell_value"    => user wants to get a currency amount, figure out shares
+    #   - "sell_shares"   => user sells exactly n_trading_opportunities shares, figure out currency proceeds
+    ############################################################################
+
     def simulate_buy_value(self, total_value: float):
         """
         Simulate buying with `total_value` currency.
@@ -167,7 +212,7 @@ class BondingCurveAMM:
         if num_shares < 0:
             raise ValueError("Cannot buy a negative number of shares.")
         # The net cost to move supply from x to x + num_shares
-        gross_cost = self.curve.cost_to_move(self.x, self.x + num_shares)
+        gross_cost = self._cost_to_move(self.x, self.x + num_shares)
         if gross_cost < 0:
             gross_cost = 0.0  # Edge case if num_shares=0 or x=0
 
@@ -177,13 +222,16 @@ class BondingCurveAMM:
         if self.fee_rate < 1.0:
             ideal_total = gross_cost / (1.0 - self.fee_rate)
         else:
-            # If fee_rate=1, the user can't actually buy anything.
+            # If fee_rate=1, the user can't actually buy anything. We'll just handle zero-shares.
             ideal_total = float('inf') if gross_cost > 0 else 0.0
 
         quanta_used = int(math.ceil(ideal_total / self.quanta)) if ideal_total > 0 else 0
         total_paid = quanta_used * self.quanta
         breakage_fee = total_paid - ideal_total if total_paid > ideal_total else 0.0
         fee_amount = total_paid * self.fee_rate
+
+        # The net that actually goes to the curve:
+        # net = total_paid - fee_amount. That should be >= gross_cost, meaning user might slightly overpay.
 
         return {
             "gross_cost": gross_cost,
@@ -211,10 +259,10 @@ class BondingCurveAMM:
         if num_shares > self.x:
             raise ValueError("Cannot sell more shares than current supply.")
 
-        # 1) The "gross" currency (before fees) from x -> x - num_shares
-        gross_currency = -self.curve.cost_to_move(self.x, self.x - num_shares)
+        # 1) The "gross" currency (before fees/breakage) from x -> x - num_shares
+        gross_currency = -self._cost_to_move(self.x, self.x - num_shares)
         if gross_currency < 0:
-            gross_currency = 0.0  # Edge case
+            gross_currency = 0.0  # Edge case, shouldn't happen if x>0 and num_shares>0
 
         # 2) Break into quanta
         quanta_used = int(math.floor(gross_currency / self.quanta))
@@ -248,18 +296,17 @@ class BondingCurveAMM:
         """
         if target_value < 0:
             raise ValueError("Target sell value must be non-negative.")
-
         # 1) break into quanta
         quanta_used = int(math.floor(target_value / self.quanta))
         breakage_fee = target_value - quanta_used * self.quanta
 
-        gross_currency = quanta_used * self.quanta
+        gross_currency = quanta_used * self.quanta  # We want that from the curve
         fee_amount = gross_currency * self.fee_rate
         net_currency = gross_currency - fee_amount
 
         # 2) Solve for dx s.t. cost_to_move(x, x+dx) = -gross_currency
-        # (the user is receiving `gross_currency`)
-        dx = self._solve_for_dx(self.x, -gross_currency)  # likely negative
+        # because the user is receiving `gross_currency` from the curve
+        dx = self._solve_for_dx(self.x, -gross_currency)  # negative
 
         return {
             "quanta_used": quanta_used,
@@ -270,9 +317,10 @@ class BondingCurveAMM:
             "shares_sold": dx,
         }
 
-    ###########################################################################
-    # Actual Action Methods (State-Changing)
-    ###########################################################################
+    ############################################################################
+    # Actual Action Methods
+    ############################################################################
+
     def buy_value(self, value: float) -> float:
         """
         The user spends `value` currency to buy shares.
@@ -294,10 +342,12 @@ class BondingCurveAMM:
         """
         sim = self.simulate_buy_shares(num_shares)
 
-        # We assume we can indeed mint exactly num_shares
+        # We'll assume we can indeed mint exactly num_shares:
+        # The net cost is sim["gross_cost"], but the user pays sim["total_paid"] (including fees, breakage).
+        # Increase supply by num_shares
         self.x += num_shares
 
-        # The curve receives net = (total_paid - fee_amount)
+        # The curve receives net = sim["total_paid"] - sim["fee_amount"]
         net_currency = sim["total_paid"] - sim["fee_amount"]
 
         # Update AMM balances
@@ -327,7 +377,7 @@ class BondingCurveAMM:
         Returns the number of shares sold (positive float).
         """
         sim = self.simulate_sell_value(value)
-        dx = sim["shares_sold"]  # negative or possibly 0
+        dx = sim["shares_sold"]  # negative
 
         # Check if this would exceed the current supply
         if self.x + dx < 0:
@@ -340,9 +390,10 @@ class BondingCurveAMM:
 
         return abs(dx)
 
-    ###########################################################################
+    ############################################################################
     # Utility
-    ###########################################################################
+    ############################################################################
+
     def get_maximum_sell_value(self) -> float:
         """
         Returns the maximum net currency value one can extract by selling all shares (self.x).
@@ -360,19 +411,16 @@ class BondingCurveAMM:
         """
         if x_val is None:
             x_val = self.x
-        return self.curve.price_integral(x_val)
+        return self._price_integral(x_val, self.scale)
 
     def current_price(self) -> float:
         """
         Returns the instantaneous price at supply self.x.
         """
-        return self.curve.price(self.x)
+        return self._price(self.x, self.scale)
 
     def __repr__(self) -> str:
-        return (f"<BondingCurveAMM("
-                f"curve={self.curve.__class__.__name__}, "
-                f"fee_rate={self.fee_rate}, "
-                f"quanta={self.quanta}, "
+        return (f"<BondingCurveAMMCoupled(scale={self.scale}, quanta={self.quanta}, fee_rate={self.fee_rate}, "
                 f"supply={self.x:.6f}, "
                 f"cash_collected={self.total_cash_collected:.6f}, "
                 f"fees_collected={self.total_fees_collected:.6f})>")

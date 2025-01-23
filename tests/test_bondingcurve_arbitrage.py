@@ -2,19 +2,19 @@
 import pytest
 import math
 
-from bonding.bondingcurveamm import BondingCurveAMM  # Adjust the import path as necessary
+from bonding.sqrtbondingcurveamm import SqrtBondingCurveAMM  # Adjust the import path as necessary
 
 
 @pytest.fixture
 def amm_with_fees():
     """Fixture for AMM instance with fees."""
-    return BondingCurveAMM(scale=100.0, fee_rate=0.001)  # 0.1% fee
+    return SqrtBondingCurveAMM(scale=100.0, fee_rate=0.001)  # 0.1% fee
 
 
 @pytest.fixture
 def amm_no_fees():
     """Fixture for AMM instance without fees."""
-    return BondingCurveAMM(scale=100.0, fee_rate=0.0)  # No fees
+    return SqrtBondingCurveAMM(scale=100.0, fee_rate=0.0)  # No fees
 
 
 def test_no_arbitrage_immediate_round_trip_with_fees(amm_with_fees):
@@ -59,12 +59,12 @@ def test_split_vs_single_trade_no_free_arbitrage():
     N = 10  # number of splits
 
     # Single trade approach
-    amm_single = BondingCurveAMM(scale=1000.0, fee_rate=0.001)
+    amm_single = SqrtBondingCurveAMM(scale=1000.0, fee_rate=0.001)
     shares_single = amm_single.buy_value(X)
     net_single = amm_single.sell_shares(shares_single)
 
     # Split approach
-    amm_split = BondingCurveAMM(scale=1000.0, fee_rate=0.001)
+    amm_split = SqrtBondingCurveAMM(scale=1000.0, fee_rate=0.001)
     shares_split = 0.0
     for _ in range(N):
         shares_split += amm_split.buy_value(X / N)
