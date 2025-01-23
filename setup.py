@@ -21,7 +21,6 @@ setup(
         "Programming Language :: Python :: 3.12",
     ],
     packages=["bonding",
-              "bonding.builtin"
               ],
     test_suite='pytest',
     tests_require=['pytest'],
