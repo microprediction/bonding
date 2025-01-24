@@ -8,6 +8,7 @@ The market maker charges a deterministic incremental price that is a function of
 
 Create a market maker:
 
+    from bonding.amms.sqrtbondingcurveamm import SqrtBondingCurveAMM
     amm = SqrtBondingCurveAMM(scale=1000.0, fee_rate=0.001)
 
 Invest $1000:
@@ -30,10 +31,18 @@ Then sell out:
 Latter two are optional. Scipy is only used for numerical verification at present. 
 
 
-### Conventions
+### Curve properties
 The bonding curves all satisfy the following conditions:
 
      price(0)=1
      prince(self.get_scale())=2 
 
-They are also monotonic. 
+See the [bondingcurve.py](https://github.com/microprediction/bonding/blob/main/bonding/curves/bondingcurve.py) for verification methods. 
+
+They are also monotonic, as you can verify. For example:
+
+     from bonding.amms.sqrtbondingcurve import SqrtBondingCurve
+     SqrtBondingCurve(scale=10).plot()
+
+### Automated market maker properties
+Round trip buying and selling, in either direction, cannot yield an arbitrage whether we specify quantity or cost. See [bondingcurveamm,py](https://github.com/microprediction/bonding/blob/main/bonding/amms/bondingcurveamm.py) for verification methods. 
