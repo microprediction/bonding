@@ -131,25 +131,18 @@ Incentive-Compatible Automated Market Makers (AMMs) are designed to align the in
 
 ---
 
-## Aragon Fundraising Whitepaper [pdf](https://github.com/aragon/fundraising/raw/master/docs/Aragon%20Fundraising%20Whitepaper.pdf)
+## Aragon Fundraising Whitepaper [repo](https://github.com/aragon/whitepaper)
 
-Aragon Fundraising aims to provide a framework for decentralized organizations to raise capital and manage finances using a bonding curve model. By leveraging a continuous token issuance process, organizations can enable stakeholders to seamlessly enter or exit a project while maintaining transparent and accountable governance. This paper outlines the core components, theoretical foundations, and practical considerations for implementing Aragon Fundraising within the Aragon ecosystem.
+The Aragon Network is an Aragon organization that provides infrastructure and services to users of the Aragon platform, and is governed by ANT holders. The existing Aragon infrastructure enables users to create and manage organizations. Each Aragon organization exists as a set of smart contracts that define the organization's stakeholders and their associated rights and privileges. However, some rights and privileges require subjective constraints that cannot be encoded in a smart contract directly.
 
----
+The Aragon Court is a decentralized oracle protocol developed and maintained by the Aragon Network. The Aragon Court can be used by organizations, including the Aragon Network itself, to resolve subjective disputes with binary outcomes. When combined with the existing Aragon infrastructure, it enables an organization to create Proposal Agreements that define subjective constraints on an organization's operation and can be enforced by minority stakeholders.
 
-## The Curation Markets Whitepaper [pdf](https://tokensummit.com/curation-markets-whitepaper)
+
+
+## The Curation Markets Whitepaper [medium](https://medium.com/@simondlr/introducing-curation-markets-trade-popularity-of-memes-information-with-code-70bf6fed9881)
+Simon de la Rouviere
 
 Curation markets are designed to incentivize communities to collectively organize information using token bonding curves as a mechanism for value discovery and coordination. This whitepaper explores how bonding curves establish a pricing function for curated tokens, allowing participants to stake on particular content, topics, or projects. The model’s game-theoretic underpinnings encourage collaboration, as individuals are rewarded for contributing to the shared knowledge pool and accurately signaling valuable information.
 
----
 
-## Reflexer Labs: RAI Whitepaper [pdf](https://reflexer.finance/whitepaper)
-
-RAI is introduced as a non-pegged stable asset governed by a reflex-bonding mechanism that dynamically adjusts interest rates based on market conditions. By departing from traditional peg-based designs, RAI seeks to achieve greater stability and independence from fiat-denominated collateral. This whitepaper presents the theoretical foundations, incentive structures, and protocol mechanics aimed at creating a more resilient form of decentralized money.
-
----
-
-## Hummingbot Whitepaper [pdf](https://hummingbot.io/Hummingbot_Whitepaper.pdf)
-
-Hummingbot is an open-source software client that allows users to create and run high-frequency trading bots across various cryptocurrency exchanges and DeFi protocols. While not exclusively focused on bonding curves, it provides insight into algorithmic market making and liquidity provision strategies that intersect with bonding curve designs. This whitepaper discusses architecture, supported strategies, and how Hummingbot contributes to a more efficient and transparent market infrastructure.
 
