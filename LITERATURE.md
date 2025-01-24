@@ -50,45 +50,60 @@ the low-fee pool
 
 
 
-## Bancor Protocol Whitepaper [pdf](https://bancor.network/static/Bancor_Protocol_Whitepaper_en.pdf)
+## Bancor Protocol Whitepaper [pdf](https://www.securities.io/bancor-whitepaper/)
 
 The Bancor Protocol is a decentralized liquidity network that allows for the automatic and continuous trading of tokens through the use of smart tokens equipped with a built-in smart contract. These smart tokens can be bought and sold directly by users, without the need for a traditional order book, by relying on a mathematically defined pricing mechanism known as a bonding curve.
 
 ---
 
-## Bonding Curves in Continuous Token Models [medium](https://medium.com/@simondlr/bonding-curves-in-continuous-token-models-6681749e0c50)
+## Bonding Curves in Continuous Token Models [medium](https://medium.com/thoughtchains/on-single-bonding-curves-for-continuous-token-models-a167f5ffef89)
 
 Bonding curves are a fundamental concept in the design of continuous token models. They provide a mathematical relationship between the supply of a token and its price, enabling the seamless issuance and redemption of tokens. By defining this relationship, bonding curves facilitate automated market making and ensure continuous liquidity without relying on traditional exchange order books.
 
 ---
 
-## Uniswap v2 Whitepaper [pdf](https://uniswap.org/whitepaper.pdf)
+## Uniswap v2 Whitepaper [pdf](https://app.uniswap.org/whitepaper.pdf)
 
-Uniswap is a fully decentralized protocol for automated liquidity provision on Ethereum. It uses a constant product formula (x * y = k) to maintain liquidity pools, enabling users to trade ERC-20 tokens directly from their wallets without relying on traditional order books. This whitepaper details the protocol's design, economic incentives, and potential applications within the decentralized finance (DeFi) ecosystem.
-
----
-
-## Gnosis Protocol: The OWL Token [docs](https://docs.gnosis.io/protocol/docs/introduction1/)
-
-The OWL token is designed to leverage bonding curves for dynamic token issuance and pricing within the Gnosis Protocol. By utilizing a bonding curve mechanism, the OWL token ensures continuous liquidity and adjusts its price based on supply and demand, thereby providing a robust and automated market-making solution that mitigates common issues such as front-running and price manipulation.
-
----
-
-## Balancer Whitepaper [pdf](https://balancer.fi/whitepaper)
-
-Balancer is an automated portfolio manager and trading platform that allows users to create self-balancing cryptocurrency portfolios. By enabling customizable weightings of multiple tokens within a liquidity pool, Balancer provides dynamic pricing and automated rebalancing, acting as a generalization of automated market makers. This whitepaper explores the underlying mechanics, economic incentives, and potential applications of Balancer within the decentralized finance (DeFi) landscape.
+This technical whitepaper explains some of the design decisions behind the Uniswap
+v2 core contracts. It covers the contracts’ new features—including arbitrary pairs
+between ERC20s, a hardened price oracle that allows other contracts to estimate the
+time-weighted average price over a given interval, “flash swaps” that allow traders to
+receive assets and use them elsewhere before paying for them later in the transaction,
+and a protocol fee that can be turned on in the future. It also re-architects the contracts
+to reduce their attack surface. This whitepaper describes the mechanics of Uniswap v2’s
+“core” contracts including the pair contract that stores liquidity providers’ funds—and
+the factory contract used to instantiate pair contracts.
 
 ---
 
-## Bonding Curves, Explored [blog](https://blog.oceanprotocol.com/bonding-curves-explored-bdp-2b046184f28e)
+## A non-custodial portfolio manager, liquidity provider, and price sensor. [pdf](https://wikibitimg.fx994.com/attach/2021/05/212595670202/WBE212595670202_14467.pdf)
+Fernando Martinelli, Nikolai Mushegian
 
-Bonding curves are a powerful tool in the decentralized finance ecosystem, providing a mathematical framework for dynamic token pricing and liquidity management. In this exploration, we delve into the mechanics of bonding curves, their implementation in smart contracts, and the economic incentives they create for participants. By understanding these elements, developers can design more robust and incentive-aligned token economies.
+A Balancer Pool is an automated market maker with certain key properties that cause it to function as a selfbalancing weighted portfolio and price sensor.
+Balancer turns the concept of an index fund on its head: instead of paying fees to portfolio managers to
+rebalance your portfolio, you collect fees from traders, who rebalance your portfolio by following arbitrage
+opportunities.
+Balancer is based on a particular N-dimensional surface which denes a cost function for the exchange of
+any pair of tokens held in a Balancer Pool. This approach was rst described by V. Buterin[0]
+(https://www.reddit.com/r/ethereum/comments/55m04x/lets_run_onchain_decentralized_exchanges_the_way/),
+generalized by Alan Lu[1] (https://blog.gnosis.pm/building-a-decentralized-exchange-in-ethereumeea4e7452d6e), and proven viable for market making by the popular Uniswap[2] (https://uniswap.io) dapp.
+We independently arrived at the same surface denition by starting with the requirement that any trade
+must maintain a constant proportion of value in each asset of the portfolio. We applied an invariant-based
+modeling approach described by Zargham et al[3] (https://arxiv.org/pdf/1807.00955.pdf) to construct this
+solution. We will prove that these constant-value market makers have this property
+
+
 
 ---
 
-## Game Theoretic Properties of Bonding Curves [block.science](https://block.science/) 
+## Introducing the Equilibrium Bonding Market [medium](https://blog.oceanprotocol.com/introducing-the-equilibrium-bonding-market-e7db528e0eff)
+Fang Gong
 
-This study examines the game-theoretic aspects of bonding curves within automated market makers (AMMs). By analyzing participant strategies and equilibrium behaviors, we explore how different bonding curve designs influence market dynamics, liquidity provision, and resistance to arbitrage. The findings provide insights into designing bonding curves that promote fair and efficient markets, enhancing the robustness of decentralized financial systems.
+This article presents a new automated market maker design that overcomes issues with bonding curves, for application to curation and staking. It is called “equilibrium bonding market” because it provides the equilibrium price of the bonded token.
+
+---
+
+
 
 ---
 
