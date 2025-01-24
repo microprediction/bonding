@@ -1,5 +1,5 @@
 
-from bonding.sqrtbondingcurveamm import SqrtBondingCurveAMM
+from bonding.amms import SqrtBondingCurveAMM
 
 
 # Compare incremental buying to single larger trade
@@ -24,4 +24,4 @@ if __name__=='__main__':
 
     # Ensure that the split approach does not yield more net than the single trade
     assert net_split <= net_single + 1e-6, \
-        "Multiple small buys+sell shouldn't yield strictly more net than a single trade."
+        "Multiple small buys+sell shouldn't yield strictly more net than scale single trade."

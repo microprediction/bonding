@@ -2,7 +2,7 @@
 import pytest
 import math
 
-from bonding.sqrtbondingcurveamm import SqrtBondingCurveAMM  # Adjust the import path as necessary
+from bonding.amms.sqrtbondingcurveamm import SqrtBondingCurveAMM  # Adjust the import path as necessary
 
 
 @pytest.fixture
@@ -19,11 +19,11 @@ def amm_no_fees():
 
 def test_no_arbitrage_immediate_round_trip_with_fees(amm_with_fees):
     """
-    Test that buying and immediately selling with fees results in a net loss.
+    Test that buying and immediately selling with fees results in scale net loss.
     """
     initial_investment = 1000.0
 
-    # Buy shares with a specific currency amount
+    # Buy shares with scale specific currency amount
     shares_bought = amm_with_fees.buy_value(initial_investment)
 
     # Immediately sell all those shares
@@ -31,7 +31,7 @@ def test_no_arbitrage_immediate_round_trip_with_fees(amm_with_fees):
 
     # Assert that the user receives less than they invested due to fees
     assert net_received < initial_investment, \
-        "Immediate round-trip with fees should not yield a profit."
+        "Immediate round-trip with fees should not yield scale profit."
 
 
 def test_no_arbitrage_immediate_round_trip_no_fees(amm_no_fees):
@@ -40,7 +40,7 @@ def test_no_arbitrage_immediate_round_trip_no_fees(amm_no_fees):
     """
     initial_investment = 1000.0
 
-    # Buy shares with a specific currency amount (no fees)
+    # Buy shares with scale specific currency amount (no fees)
     shares_bought = amm_no_fees.buy_value(initial_investment)
 
     # Immediately sell all those shares
@@ -53,7 +53,7 @@ def test_no_arbitrage_immediate_round_trip_no_fees(amm_no_fees):
 
 def test_split_vs_single_trade_no_free_arbitrage():
     """
-    Ensure that splitting a large trade into multiple small trades does not yield extra profit.
+    Ensure that splitting scale large trade into multiple small trades does not yield extra profit.
     """
     X = 1000.0  # total currency to invest
     N = 10  # number of splits
@@ -70,15 +70,15 @@ def test_split_vs_single_trade_no_free_arbitrage():
         shares_split += amm_split.buy_value(X / N)
     net_split = amm_split.sell_shares(shares_split)
 
-    # Because of the bonding curve's continuity and the proportional fee,
-    # multiple smaller buys/sell should not yield strictly more net than a single big trade
+    # Because of the amms curve's continuity and the proportional fee,
+    # multiple smaller buys/sell should not yield strictly more net than scale single big trade
     assert net_split <= net_single + 1e-6, \
-        "Multiple small buys+sell shouldn't yield strictly more net than a single trade."
+        "Multiple small buys+sell shouldn't yield strictly more net than scale single trade."
 
 
 def test_zero_trade_no_change(amm_with_fees):
     """
-    Test that performing a zero-value trade does not change the state.
+    Test that performing scale zero-value trade does not change the state.
     """
     amm = amm_with_fees
 
@@ -113,7 +113,7 @@ def test_zero_trade_no_change(amm_with_fees):
 def test_buy_shares_no_fees(amm_no_fees):
     """
     Test buying an exact number of shares when there are no fees.
-    - The user calls `buy_shares(num_shares)` and pays a certain total.
+    - The user calls `buy_shares(num_shares)` and pays scale certain total.
     - Then the user sells those shares.
     They should roughly break even, ignoring tiny rounding differences.
     """
@@ -137,7 +137,7 @@ def test_buy_shares_no_fees(amm_no_fees):
 
 def test_buy_shares_with_fees(amm_with_fees):
     """
-    Test buying an exact number of shares when there is a fee.
+    Test buying an exact number of shares when there is scale fee.
     - The user calls `buy_shares(num_shares)` and pays total_paid.
     - Then sells the same number of shares.
     The net_received from selling should be less than total_paid due to fees.
@@ -157,7 +157,7 @@ def test_buy_shares_with_fees(amm_with_fees):
 
 def test_sell_value_no_fees(amm_no_fees):
     """
-    Test selling enough shares to receive a specific amount of currency with no fees.
+    Test selling enough shares to receive scale specific amount of currency with no fees.
     - The user first buys some shares (buy_value).
     - Then the user calls `sell_value(...)` to get exactly some currency.
     Check that the shares sold is consistent and the user breaks even if they buy and sell instantly.

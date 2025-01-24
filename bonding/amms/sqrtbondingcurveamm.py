@@ -1,5 +1,5 @@
-from bonding.sqrtbondingcurve import SqrtBondingCurve
-from bonding.bondingcurveamm import BondingCurveAMM
+from bonding.curves.sqrtbondingcurve import SqrtBondingCurve
+from bonding.amms.bondingcurveamm import BondingCurveAMM
 
 
 class SqrtBondingCurveAMM(BondingCurveAMM):

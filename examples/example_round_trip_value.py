@@ -1,5 +1,5 @@
 
-from bonding.sqrtbondingcurveamm import SqrtBondingCurveAMM
+from bonding.amms import SqrtBondingCurveAMM
 
 
 # Compare incremental buying

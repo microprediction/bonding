@@ -1,12 +1,12 @@
-import math
 from abc import ABC, abstractmethod
+from bonding.curveplots.matplotlibcurveplot import matplotlib_curve_plot
 
 
 class BondingCurve(ABC):
     """
-    Abstract base class for bonding curves.
+    Abstract base class for amms curves.
 
-    Each concrete bonding curve must define:
+    Each concrete amms curve must define:
       - price(x): float
       - price_integral(x): float
         => integral of price(u) du from 0 to x
@@ -35,3 +35,6 @@ class BondingCurve(ABC):
         Default implementation: difference in the integrals.
         """
         return self.price_integral(x_end) - self.price_integral(x_start)
+
+    def plot(self, x_max: float = 10, num_points: int = 1000):
+        return matplotlib_curve_plot(self, x_max=x_max, num_points=num_points)

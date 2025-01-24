@@ -6,8 +6,8 @@ HERE = pathlib.Path(__file__).parent
 README = (HERE / "README.md").read_text()
 
 setup(
-    name="bonding",
-    version="0.0.2",
+    name="amms",
+    version="0.0.3",
     description="Bonding curve market makers",
     long_description=README,
     long_description_content_type="text/markdown",
@@ -20,7 +20,7 @@ setup(
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.12",
     ],
-    packages=["bonding",
+    packages=["amms",
               ],
     test_suite='pytest',
     tests_require=['pytest'],
@@ -28,7 +28,7 @@ setup(
     install_requires=['scipy'],
     entry_points={
         "console_scripts": [
-            "bonding=bonding.__main__:main",
+            "amms=amms.__main__:main",
         ]
     },
 )

@@ -1,4 +1,4 @@
-from bonding.sqrtbondingcurveamm import SqrtBondingCurveAMM
+from bonding.amms.sqrtbondingcurveamm import SqrtBondingCurveAMM
 
 
 # Compare incremental buying to single larger trade

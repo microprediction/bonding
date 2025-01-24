@@ -13,15 +13,15 @@ class BondingCurveAMM:
     Attributes
     ----------
     curve : BondingCurve
-        The bonding curve instance that defines price and integral logic.
+        The amms curve instance that defines price and integral logic.
     fee_rate : float
         Fraction of each transaction (buy or sell) collected as fees. 0.001 => 0.1%.
     quanta : float
         Defines the smallest currency denomination (1e-8).
     x : float
-        Current total minted/sold (the "supply" on the bonding curve).
+        Current total minted/sold (the "supply" on the amms curve).
     total_cash_collected : float
-        Total amount of currency that the bonding curve has collected (this excludes fees).
+        Total amount of currency that the amms curve has collected (this excludes fees).
     total_fees_collected : float
         Total amount of currency collected as fees.
     logger : logging.Logger
@@ -35,7 +35,7 @@ class BondingCurveAMM:
         Parameters
         ----------
         curve : BondingCurve
-            A bonding curve instance (e.g. SqrtBondingCurve).
+            A amms curve instance (e.g. SqrtBondingCurve).
         fee_rate : float, optional
             Fraction of each transaction (buy or sell) to be taken as fees (0.001 => 0.1%).
         quanta : float, optional
@@ -376,3 +376,241 @@ class BondingCurveAMM:
                 f"supply={self.x:.6f}, "
                 f"cash_collected={self.total_cash_collected:.6f}, "
                 f"fees_collected={self.total_fees_collected:.6f})>")
+
+    ###########################################################################
+    # Arbitrage checks (Round Trip Simulations)
+    ###########################################################################
+    def simulate_buy_value_then_sell_shares(self, buy_value: float = 1.0):
+        """
+        Simulate spending `buy_value` currency to buy shares, and then
+        immediately selling *all* those purchased shares.
+
+        Returns
+        -------
+        dict
+            {
+                'initial_currency': float,
+                'final_currency': float,
+                'net_delta': float,
+                'buy_sim': dict,      # output of simulate_buy_value(...)
+                'sell_sim': dict,     # output of simulate_sell_shares(...)
+                'arbitrage': bool,    # True if net_delta > 0
+            }
+        """
+        # -- 1) Snapshot current AMM state --
+        old_x = self.x
+        old_cash = self.total_cash_collected
+        old_fees = self.total_fees_collected
+
+        try:
+            # -- 2) Perform the actual buy and sell on the AMM --
+            shares_received = self.buy_value(buy_value)     # real state change
+            final_currency = self.sell_shares(shares_received)  # real state change
+
+            # -- 3) Calculate the net delta --
+            net_delta = final_currency - buy_value
+
+            return {
+                "initial_currency": buy_value,
+                "final_currency": final_currency,
+                "net_delta": net_delta,
+                "buy_sim": {},      # Optionally, include simulation details if needed
+                "sell_sim": {},
+                "arbitrage": (net_delta > 0),
+            }
+        finally:
+            # -- 4) Revert state to snapshot to avoid polluting further tests --
+            self.x = old_x
+            self.total_cash_collected = old_cash
+            self.total_fees_collected = old_fees
+
+    def simulate_buy_shares_then_sell_shares(self, num_shares: float = 1.0):
+        """
+        Simulate buying exactly `num_shares`, then immediately selling
+        those same shares.
+
+        Returns
+        -------
+        dict
+            {
+                'shares_bought': float,
+                'currency_spent': float,    # total_paid from buy_shares
+                'currency_received': float, # net_currency from sell_shares
+                'net_delta': float,
+                'arbitrage': bool
+            }
+        """
+        # -- 1) Snapshot --
+        old_x = self.x
+        old_cash = self.total_cash_collected
+        old_fees = self.total_fees_collected
+
+        try:
+            # -- 2) Actual operations --
+            currency_spent = self.buy_shares(num_shares)   # returns total_paid
+            currency_received = self.sell_shares(num_shares)
+
+            # -- 3) Net delta in currency --
+            net_delta = currency_received - currency_spent
+
+            return {
+                "shares_bought": num_shares,
+                "currency_spent": currency_spent,
+                "currency_received": currency_received,
+                "net_delta": net_delta,
+                "arbitrage": (net_delta > 0),
+            }
+        finally:
+            # -- 4) Revert --
+            self.x = old_x
+            self.total_cash_collected = old_cash
+            self.total_fees_collected = old_fees
+
+    def simulate_sell_value_then_buy_shares(self, target_value: float = 1.0):
+        """
+        Simulate selling enough shares to receive exactly `target_value` currency,
+        then use the *net* proceeds to buy shares again.
+
+        Returns
+        -------
+        dict
+            {
+                'target_value': float,
+                'shares_sold': float,          # positive
+                'buy_shares_received': float,  # how many shares we get from the net currency
+                'shares_delta': float,         # (buy_shares_received - shares_sold)
+                'arbitrage': bool
+            }
+        """
+        # -- 1) Snapshot --
+        old_x = self.x
+        old_cash = self.total_cash_collected
+        old_fees = self.total_fees_collected
+
+        try:
+            # -- 2) Sell enough shares to get `target_value` currency (actual call) --
+            shares_sold = self.sell_value(target_value)   # returns # shares sold
+            # Now the user has `target_value` currency (conceptually)...
+
+            # -- 3) Use that same currency to buy shares again (actual call) --
+            #   We'll call buy_value(...) with exactly `target_value`
+            shares_bought = self.buy_value(target_value)
+
+            # -- 4) net shares difference --
+            shares_delta = shares_bought - shares_sold
+
+            return {
+                "target_value": target_value,
+                "shares_sold": shares_sold,
+                "buy_shares_received": shares_bought,
+                "shares_delta": shares_delta,
+                "arbitrage": (shares_delta > 0),
+            }
+        finally:
+            # -- 5) Revert --
+            self.x = old_x
+            self.total_cash_collected = old_cash
+            self.total_fees_collected = old_fees
+
+    def simulate_sell_shares_then_buy_value(self, shares_to_sell: float = 1.0):
+        """
+        Simulate selling exactly `shares_to_sell`, then use the net proceeds
+        to buy as much as possible of the AMM (buy_value) with that currency.
+
+        Returns
+        -------
+        dict
+            {
+                'shares_sold': float,
+                'currency_received': float,
+                'shares_bought': float,
+                'shares_delta': float,
+                'arbitrage': bool
+            }
+        """
+        # -- 1) Snapshot --
+        old_x = self.x
+        old_cash = self.total_cash_collected
+        old_fees = self.total_fees_collected
+
+        try:
+            # -- 2) Sell `shares_to_sell` (actual call) --
+            currency_received = self.sell_shares(shares_to_sell)
+
+            # -- 3) Use that entire currency to buy_value(...) again --
+            shares_bought = self.buy_value(currency_received)
+
+            # -- 4) Compare new shares vs. old
+            shares_delta = shares_bought - shares_to_sell
+
+            return {
+                "shares_sold": shares_to_sell,
+                "currency_received": currency_received,
+                "shares_bought": shares_bought,
+                "shares_delta": shares_delta,
+                "arbitrage": (shares_delta > 0),
+            }
+        finally:
+            # -- 5) Revert --
+            self.x = old_x
+            self.total_cash_collected = old_cash
+            self.total_fees_collected = old_fees
+
+    def assert_no_round_trip_arbitrage(self) -> bool:
+        """
+        Runs a few sample round-trip trades with *actual* state changes
+        (then reverts after each test). If any scenario yields a net profit,
+        raises RuntimeError.
+
+        Returns
+        -------
+        bool
+            True if no arbitrage found, else RuntimeError is raised.
+        """
+        # You can pick a small set of test values/shares
+        test_values = [0.5, 1.0, 10.0]
+        test_shares = [0.5, 1.0, 10.0]
+
+        # (1) Buy-value->Sell-shares
+        for val in test_values:
+            result = self.simulate_buy_value_then_sell_shares(val)
+            if result["arbitrage"]:
+                raise RuntimeError(
+                    f"Arbitrage detected in buy_value->sell_shares for value={val}: "
+                    f"net_delta={result['net_delta']}"
+                )
+
+        # (2) Buy-shares->Sell-shares
+        for s in test_shares:
+            result = self.simulate_buy_shares_then_sell_shares(s)
+            if result["arbitrage"]:
+                raise RuntimeError(
+                    f"Arbitrage detected in buy_shares->sell_shares for shares={s}: "
+                    f"net_delta={result['net_delta']}"
+                )
+
+        # (3) Sell-value->Buy-shares
+        for val in test_values:
+            # Only attempt if the AMM has enough supply to realistically sell `val`.
+            if self.get_maximum_sell_value() >= val:
+                result = self.simulate_sell_value_then_buy_shares(val)
+                if result["arbitrage"]:
+                    raise RuntimeError(
+                        f"Arbitrage detected in sell_value->buy_shares for value={val}: "
+                        f"shares_delta={result['shares_delta']}"
+                    )
+
+        # (4) Sell-shares->Buy-value
+        for s in test_shares:
+            # Must have enough shares (s <= self.x) to do the test
+            if s <= self.x:
+                result = self.simulate_sell_shares_then_buy_value(s)
+                if result["arbitrage"]:
+                    raise RuntimeError(
+                        f"Arbitrage detected in sell_shares->buy_value for shares={s}: "
+                        f"shares_delta={result['shares_delta']}"
+                    )
+
+        # If we made it here, no arbitrage in tested scenarios
+        return True
+
