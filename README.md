@@ -31,11 +31,11 @@ Then sell out:
 Latter two are optional. Scipy is only used for numerical verification at present. 
 
 
-### Curve properties
-The bonding curves all satisfy the following conditions:
+### Interpretation of `scale`
+All curves satisfy:
 
      price(0)=1
-     prince(self.get_scale())=2 
+     price(scale)=2 
 
 See the [bondingcurve.py](https://github.com/microprediction/bonding/blob/main/bonding/curves/bondingcurve.py) for verification methods. 
 
