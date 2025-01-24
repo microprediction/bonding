@@ -343,7 +343,7 @@ class BondingCurveAMM:
     ###########################################################################
     def get_maximum_sell_value(self) -> float:
         """
-        Returns the maximum net currency value one can extract by selling all shares (self.x).
+        Returns the maximum net currency value one can extract by selling all shares (curve.x).
         """
         if self.x <= 0:
             return 0.0
@@ -354,7 +354,7 @@ class BondingCurveAMM:
 
     def total_cost_at_supply(self, x_val: float = None) -> float:
         """
-        Returns the integral of the price from 0 to x_val (or self.x).
+        Returns the integral of the price from 0 to x_val (or curve.x).
         """
         if x_val is None:
             x_val = self.x
@@ -362,7 +362,7 @@ class BondingCurveAMM:
 
     def current_price(self) -> float:
         """
-        Returns the instantaneous price at supply self.x.
+        Returns the instantaneous price at supply curve.x.
         """
         return self.curve.price(self.x)
 
@@ -600,7 +600,7 @@ class BondingCurveAMM:
 
         # (4) Sell-shares->Buy-value
         for s in test_shares:
-            # Must have enough shares (s <= self.x) to do the test
+            # Must have enough shares (s <= curve.x) to do the test
             if s <= self.x:
                 result = self.simulate_sell_shares_then_buy_value(s)
                 if result["arbitrage"]:

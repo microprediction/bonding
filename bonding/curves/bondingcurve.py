@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
 from bonding.curveplots.matplotlibcurveplot import matplotlib_curve_plot
+from bonding.curves.verifyintegralaccuracy import verify_integral_accuracy
+from typing import List
 
 
 class BondingCurve(ABC):
@@ -38,3 +40,6 @@ class BondingCurve(ABC):
 
     def plot(self, x_max: float = 10, num_points: int = 1000):
         return matplotlib_curve_plot(self, x_max=x_max, num_points=num_points)
+
+    def verify_integral_accuracy(self, x_values: List[float], tolerance: float = 1e-6) -> bool:
+        return verify_integral_accuracy(self, x_values=x_values, tolerance=tolerance)
