@@ -60,6 +60,7 @@ the low-fee pool
 Bonding curves are a fundamental concept in the design of continuous token models. They provide a mathematical relationship between the supply of a token and its price, enabling the seamless issuance and redemption of tokens. By defining this relationship, bonding curves facilitate automated market making and ensure continuous liquidity without relying on traditional exchange order books.
 
 
+Remark. This motivated [growth bonding curve](https://github.com/microprediction/bonding/blob/main/bonding/curves/growthbondingcurve.py)
 
 ## A non-custodial portfolio manager, liquidity provider, and price sensor. [pdf](https://wikibitimg.fx994.com/attach/2021/05/212595670202/WBE212595670202_14467.pdf)
 Fernando Martinelli, Nikolai Mushegian
