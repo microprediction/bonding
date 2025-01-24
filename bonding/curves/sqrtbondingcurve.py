@@ -4,7 +4,7 @@ import math
 
 class SqrtBondingCurve(BondingCurve):
     """
-    Implements the sqrt(1 + (x / scale)^2) amms curve logic.
+    Implements the sqrt(1 + 3 (x / scale)^2) amms curve logic.
 
     price(x) = sqrt(1 + (x/scale)^2)
     price_integral(x) = 0.5 * [ x * sqrt(1 + (x/scale)^2 ) + scale * asinh(x / scale) ]

@@ -11,6 +11,9 @@ class LinearBondingCurve(BondingCurve):
         self.m = 1/scale
         self.b = 1
 
+    def get_scale(self) -> float:
+        return 1 / self.m
+
     def price(self, x: float) -> float:
         return self.m * x + self.b
 

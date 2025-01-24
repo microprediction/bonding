@@ -17,6 +17,12 @@ class BondingCurve(ABC):
            or be overridden if desired.
     """
 
+    def get_scale(self) -> float:
+        try:
+            return self.__getattribute__("scale")
+        except AttributeError:
+            raise NotImplementedError("Concrete class must implement get_scale() method or have scale attribute.")
+
     @abstractmethod
     def price(self, x: float) -> float:
         """
@@ -43,3 +49,13 @@ class BondingCurve(ABC):
 
     def verify_integral_accuracy(self, x_values: List[float], tolerance: float = 1e-6) -> bool:
         return verify_integral_accuracy(self, x_values=x_values, tolerance=tolerance)
+
+    def verify_initial_unit_price(self):
+        # Price should double by the time we issue scale shares
+        return abs(self.price(0) - 1) < 1e-6
+
+    def verify_scale_convention(self):
+        # Price should double by the time we issue scale shares
+        return abs(self.price(self.get_scale()) - 2) < 1e-6
+
+
