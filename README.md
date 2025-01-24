@@ -28,3 +28,12 @@ Then sell out:
      pip install scipy 
 
 Latter two are optional. Scipy is only used for numerical verification at present. 
+
+
+### Conventions
+The bonding curves all satisfy the following conditions:
+
+     price(0)=1
+     prince(self.get_scale())=2 
+
+They are also monotonic. 
