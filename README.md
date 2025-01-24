@@ -1,2 +1,2 @@
 # bonding
-Bonding curve automated market makers
+Bonding curves and automated market makers

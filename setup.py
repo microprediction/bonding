@@ -6,9 +6,9 @@ HERE = pathlib.Path(__file__).parent
 README = (HERE / "README.md").read_text()
 
 setup(
-    name="amms",
+    name="bonding",
     version="0.0.3",
-    description="Bonding curve market makers",
+    description="Bonding curves and market makers derived from the same",
     long_description=README,
     long_description_content_type="text/markdown",
     url="https://github.com/microprediction/bonding",
@@ -20,15 +20,19 @@ setup(
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.12",
     ],
-    packages=["amms",
+    packages=["bonding",
+              "bonding.amms",
+              "bonding.curves",
+              "bonding.curveplots",
+              "bonding.using"
               ],
     test_suite='pytest',
     tests_require=['pytest'],
     include_package_data=True,
-    install_requires=['scipy'],
+    install_requires=['numpy'],
     entry_points={
         "console_scripts": [
-            "amms=amms.__main__:main",
+            "bonding=bonding.__main__:main",
         ]
     },
 )

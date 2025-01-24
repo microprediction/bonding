@@ -1,8 +1,6 @@
 import logging
 import math
-
-# Define the smallest currency denomination
-QUANTA = 1e-8
+from bonding.amms.ammdefaultparams import QUANTA
 
 
 class BondingCurveAMM:
@@ -404,7 +402,7 @@ class BondingCurveAMM:
 
         try:
             # -- 2) Perform the actual buy and sell on the AMM --
-            shares_received = self.buy_value(buy_value)     # real state change
+            shares_received = self.buy_value(buy_value)  # real state change
             final_currency = self.sell_shares(shares_received)  # real state change
 
             # -- 3) Calculate the net delta --
@@ -414,7 +412,7 @@ class BondingCurveAMM:
                 "initial_currency": buy_value,
                 "final_currency": final_currency,
                 "net_delta": net_delta,
-                "buy_sim": {},      # Optionally, include simulation details if needed
+                "buy_sim": {},  # Optionally, include simulation details if needed
                 "sell_sim": {},
                 "arbitrage": (net_delta > 0),
             }
@@ -447,7 +445,7 @@ class BondingCurveAMM:
 
         try:
             # -- 2) Actual operations --
-            currency_spent = self.buy_shares(num_shares)   # returns total_paid
+            currency_spent = self.buy_shares(num_shares)  # returns total_paid
             currency_received = self.sell_shares(num_shares)
 
             # -- 3) Net delta in currency --
@@ -489,7 +487,7 @@ class BondingCurveAMM:
 
         try:
             # -- 2) Sell enough shares to get `target_value` currency (actual call) --
-            shares_sold = self.sell_value(target_value)   # returns # shares sold
+            shares_sold = self.sell_value(target_value)  # returns # shares sold
             # Now the user has `target_value` currency (conceptually)...
 
             # -- 3) Use that same currency to buy shares again (actual call) --
@@ -613,4 +611,3 @@ class BondingCurveAMM:
 
         # If we made it here, no arbitrage in tested scenarios
         return True
-
