@@ -2,10 +2,14 @@ def all_curves_cls():
     from bonding.curves.linearbondingcurve import LinearBondingCurve
     from bonding.curves.logbondingcurve import LogBondingCurve
     from bonding.curves.sqrtbondingcurve import SqrtBondingCurve
+    from bonding.curves.growthbondingcurve import GrowthBondingCurve
+    from bonding.curves.expbondingcurve import ExpBondingCurve
     return [
         LinearBondingCurve,
         LogBondingCurve,
-        SqrtBondingCurve
+        SqrtBondingCurve,
+        GrowthBondingCurve,
+        ExpBondingCurve
     ]
 
 
