@@ -1,5 +1,8 @@
 # bonding   ![tests_312](https://github.com/microprediction/bonding/workflows/tests_312/badge.svg) ![tests_312_scipy_matplotlib](https://github.com/microprediction/bonding/workflows/tests_312_scipy_matplotlib/badge.svg)
-Bonding curves and automated market makers
+Bonding curves and automated market makers that use them. 
+
+### Conceptual:
+The market maker charges a deterministic incremental price that is a function of the number of outstanding shares x. To compute hypothetical trades (size dependence bids or offers) or actual trades it performs an integration of the price curve, also accounting for breakage when shares are rounded by a small QUANTA and optionally collecting a proportional fee. Simple intro [here](https://www.linkedin.com/pulse/bonding-curves-new-frontier-decentralized-finance-andrea-dal-mas-4zq3f/). 
 
 ### Usage:
 
