@@ -1,5 +1,5 @@
 
-name: tests_312
+name: tests_312_scipy
 
 on:
   push:
