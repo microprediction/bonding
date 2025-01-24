@@ -9,6 +9,8 @@ Skipping forward to the reinvention of everything in web3, we have the modern eq
 If you like control theory then this is a greenfield, I suspect. I'm collating [questions](https://github.com/microprediction/bonding/blob/main/QUESTIONS.md) and [literature](https://github.com/microprediction/bonding/blob/main/LITERATURE.md) sporadically. 
 
 
+![](https://github.com/microprediction/bonding/blob/main/docs/assets/images/log_bonding_curve.png)
+
 ### Usage:
 
 Create a market maker:
