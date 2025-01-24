@@ -7,7 +7,7 @@ README = (HERE / "README.md").read_text()
 
 setup(
     name="bonding",
-    version="0.0.3",
+    version="0.0.4",
     description="Bonding curves and market makers derived from the same",
     long_description=README,
     long_description_content_type="text/markdown",
