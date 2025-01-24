@@ -4,7 +4,7 @@ import logging
 
 if not using_scipy:
     def verify_integral_accuracy(curve, x_values: List[float], tolerance: float = 1e-6) -> bool:
-        logger = logging.getLogger(curve.__name__)
+        logger = logging.getLogger(curve.__class__.__name__)
         logger.info("Scipy not available, skipping numerical integration verification.")
         return True
 
@@ -47,6 +47,8 @@ if using_scipy:
                 discrepancies.append((x, numerical_integral, analytical_integral, difference))
 
         if discrepancies:
+            logger = logging.getLogger(curve.__class__.__name__)
+            logger.error(f"Integral verification failed for {len(discrepancies)} out of {len(x_values)} points.")
             for x, num, ana, diff in discrepancies:
                 print(f"Discrepancy at x={x}: Numerical={num}, Analytical={ana}, Difference={diff}")
             raise AssertionError(f"Integral verification failed for {len(discrepancies)} out of {len(x_values)} points.")
